@@ -1,0 +1,19 @@
+{
+  "menu": [
+    {
+      "id": "tools",
+      "submenu": [
+        {
+          "label": "Php",
+          "id": "tools.php",
+          "submenu": [
+            { "label": "Generate Code...", "id": "tools.php.generate", "command": "php:generate" },
+            { "label": "Reverse Code...", "id": "tools.php.reverse", "command": "php:reverse" },
+            { "type": "separator" },
+            { "label": "Configure...", "id": "tools.php.configure", "command": "php:configure" }
+          ]
+        }
+      ]
+    }
+  ]
+}
