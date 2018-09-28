@@ -24,8 +24,6 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, _ */
 
-define(function (require, exports, module) {
-    "use strict";
 
     /**
      * CodeWriter
@@ -124,4 +122,3 @@ define(function (require, exports, module) {
 
     exports.CodeWriter = CodeWriter;
 
-});

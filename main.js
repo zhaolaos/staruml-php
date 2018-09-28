@@ -24,9 +24,6 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, _, window, app, type, appshell, document, PHPReverseEngineer */
 
-define(function (require, exports, module) {
-    "use strict";
-
     // var AppInit             = app.getModule("utils/AppInit"),
     //     Repository          = app.getModule("core/Repository"),
     //     Engine              = app.getModule("engine/Engine"),
@@ -84,27 +81,26 @@ define(function (require, exports, module) {
      * @return {$.Promise}
      */
     function _handleGenerate(base, path, options) {
-        var result = new $.Deferred();
+        //var result = new $.Deferred();
 
         // If options is not passed, get from preference
         options = options || getGenOptions();
 
         // If base is not assigned, popup ElementPicker
         if (!base) {
-            app.elementPickerDialog.showDialog("Select a base model to generate codes", null, type.UMLPackage)
-                .then(function ({buttonId, selected}) {
+            app.elementPickerDialog.showDialog("Select a base model to generate codes", null, type.UMLPackage).then(function ({buttonId, selected}) {
                     if (buttonId === 'ok') {
-                        base = selected;
+                        base = selected
 
                         // If path is not assigned, popup Open Dialog to select a folder
                         if (!path) {
                             var files= app.dialogs.showOpenDialog("Select a folder where generated codes to be located", null, null, { properties: [ 'openDirectory' ] })
                             if (files && files.length > 0) {
                                 path = files[0];
-                                PHPCodeGenerator.generate(base, path, options).then(result.resolve, result.reject);
+                                PHPCodeGenerator.generate(base, path, options);
                             }
                         } else {
-                            PHPCodeGenerator.generate(base, path, options).then(result.resolve, result.reject);
+                            PHPCodeGenerator.generate(base, path, options);
                         }
                     }
                 });
@@ -113,11 +109,11 @@ define(function (require, exports, module) {
             if (!path) {
                 var files = app.dialogs.showOpenDialog("Select a folder where generated codes to be located", null, null, { properties: [ 'openDirectory' ] })
                 if (files.length > 0) {
-                    path = files[0];
-                    PHPCodeGenerator.generate(base, path, options).then(result.resolve, result.reject);
+                    path = files[0]
+                    PHPCodeGenerator.generate(base, path, options)
                 }
             } else {
-                PHPCodeGenerator.generate(base, path, options).then(result.resolve, result.reject);
+                PHPCodeGenerator.generate(base, path, options)
             }
         }
         return result.promise();
@@ -166,5 +162,3 @@ define(function (require, exports, module) {
       }
       
       exports.init = init
-
-});

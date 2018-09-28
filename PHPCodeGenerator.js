@@ -23,9 +23,6 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, _, window, staruml, type, document, php7, app */
 
-define ( function ( require , exports , module ) {
-    "use strict";
-
     const path = require('path')
     const fs = require('fs')
 
@@ -962,5 +959,3 @@ define ( function ( require , exports , module ) {
     }
 
     exports.generate = generate;
-
-} );
