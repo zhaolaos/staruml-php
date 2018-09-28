@@ -37,7 +37,7 @@ define ( function ( require , exports , module ) {
     //     Async          = app.getModule ( "utils/Async" ) ,
     //     UML            = app.getModule ( "uml/UML" );
 
-    var CodeGenUtils = require ( "CodeGenUtils" );
+    var CodeGenUtils = require ( "./CodeGenUtils" );
 
     //constant for separate namespace on code
     var SEPARATE_NAMESPACE = '\\';

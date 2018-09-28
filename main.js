@@ -40,9 +40,9 @@ define(function (require, exports, module) {
     //     ExtensionUtils      = app.getModule("utils/ExtensionUtils"),
     //     UML                 = app.getModule("uml/UML");
 
-    var //CodeGenUtils        = require("CodeGenUtils"),
+    var //CodeGenUtils        = require("./CodeGenUtils"),
         //PHPPreferences     = require("PHPPreferences"),
-        PHPCodeGenerator   = require("PHPCodeGenerator");
+        PHPCodeGenerator   = require("./PHPCodeGenerator");
 
     /**
      * Commands IDs
