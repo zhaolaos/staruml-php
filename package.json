@@ -1,0 +1,16 @@
+{
+    "name": "staruml.php",
+    "title": "PHP",
+    "description": "PHP code generation.",
+    "homepage": "https://github.com/zhaolaos/staruml-php",
+    "keywords": ["php"],
+    "version": "1.0.0",
+    "author": {
+        "name": "Zhao laoshi",
+        "url": "https://github.com/zhaolaos"
+    },
+    "license": "MIT",
+    "engines": {
+        "staruml": ">=3.0.0"
+    }
+}
