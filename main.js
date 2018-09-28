@@ -27,20 +27,20 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var AppInit             = app.getModule("utils/AppInit"),
-        Repository          = app.getModule("core/Repository"),
-        Engine              = app.getModule("engine/Engine"),
-        Commands            = app.getModule("command/Commands"),
-        CommandManager      = app.getModule("command/CommandManager"),
-        MenuManager         = app.getModule("menu/MenuManager"),
-        Dialogs             = app.getModule("dialogs/Dialogs"),
-        ElementPickerDialog = app.getModule("dialogs/ElementPickerDialog"),
-        FileSystem          = app.getModule("filesystem/FileSystem"),
-        FileSystemError     = app.getModule("filesystem/FileSystemError"),
-        ExtensionUtils      = app.getModule("utils/ExtensionUtils"),
-        UML                 = app.getModule("uml/UML");
+    // var AppInit             = app.getModule("utils/AppInit"),
+    //     Repository          = app.getModule("core/Repository"),
+    //     Engine              = app.getModule("engine/Engine"),
+    //     Commands            = app.getModule("command/Commands"),
+    //     CommandManager      = app.getModule("command/CommandManager"),
+    //     MenuManager         = app.getModule("menu/MenuManager"),
+    //     Dialogs             = app.getModule("dialogs/Dialogs"),
+    //     ElementPickerDialog = app.getModule("dialogs/ElementPickerDialog"),
+    //     FileSystem          = app.getModule("filesystem/FileSystem"),
+    //     FileSystemError     = app.getModule("filesystem/FileSystemError"),
+    //     ExtensionUtils      = app.getModule("utils/ExtensionUtils"),
+    //     UML                 = app.getModule("uml/UML");
 
-    var CodeGenUtils        = require("CodeGenUtils"),
+    var //CodeGenUtils        = require("CodeGenUtils"),
         //PHPPreferences     = require("PHPPreferences"),
         PHPCodeGenerator   = require("PHPCodeGenerator");
 
@@ -66,6 +66,15 @@ define(function (require, exports, module) {
         };
     }
 
+    function getRevOptions () {
+        return {
+          association: app.preferences.get('php.rev.association'),
+          publicOnly: app.preferences.get('php.rev.publicOnly'),
+          typeHierarchy: app.preferences.get('php.rev.typeHierarchy'),
+          packageOverview: app.preferences.get('php.rev.packageOverview'),
+          packageStructure: app.preferences.get('php.rev.packageStructure')
+        }
+    }
     /**
      * Command Handler for PHP Generate
      *
@@ -82,47 +91,31 @@ define(function (require, exports, module) {
 
         // If base is not assigned, popup ElementPicker
         if (!base) {
-            app.ElementPickerDialog.showDialog("Select a base model to generate codes", null, type.UMLPackage)
-                .done(function (buttonId, selected) {
-                    if (buttonId === Dialogs.DIALOG_BTN_OK && selected) {
+            app.elementPickerDialog.showDialog("Select a base model to generate codes", null, type.UMLPackage)
+                .then(function ({buttonId, selected}) {
+                    if (buttonId === 'ok') {
                         base = selected;
 
                         // If path is not assigned, popup Open Dialog to select a folder
                         if (!path) {
-                            FileSystem.showOpenDialog(false, true, "Select a folder where generated codes to be located", null, null, function (err, files) {
-                                if (!err) {
-                                    if (files.length > 0) {
-                                        path = files[0];
-                                        PHPCodeGenerator.generate(base, path, options).then(result.resolve, result.reject);
-                                    } else {
-                                        result.reject(FileSystem.USER_CANCELED);
-                                    }
-                                } else {
-                                    result.reject(err);
-                                }
-                            });
+                            var files= app.dialogs.showOpenDialog("Select a folder where generated codes to be located", null, null, { properties: [ 'openDirectory' ] })
+                            if (files && files.length > 0) {
+                                path = files[0];
+                                PHPCodeGenerator.generate(base, path, options).then(result.resolve, result.reject);
+                            }
                         } else {
                             PHPCodeGenerator.generate(base, path, options).then(result.resolve, result.reject);
                         }
-                    } else {
-                        result.reject();
                     }
                 });
         } else {
             // If path is not assigned, popup Open Dialog to select a folder
             if (!path) {
-                FileSystem.showOpenDialog(false, true, "Select a folder where generated codes to be located", null, null, function (err, files) {
-                    if (!err) {
-                        if (files.length > 0) {
-                            path = files[0];
-                            PHPCodeGenerator.generate(base, path, options).then(result.resolve, result.reject);
-                        } else {
-                            result.reject(FileSystem.USER_CANCELED);
-                        }
-                    } else {
-                        result.reject(err);
-                    }
-                });
+                var files = app.dialogs.showOpenDialog("Select a folder where generated codes to be located", null, null, { properties: [ 'openDirectory' ] })
+                if (files.length > 0) {
+                    path = files[0];
+                    PHPCodeGenerator.generate(base, path, options).then(result.resolve, result.reject);
+                }
             } else {
                 PHPCodeGenerator.generate(base, path, options).then(result.resolve, result.reject);
             }
@@ -141,22 +134,15 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
 
         // If options is not passed, get from preference
-        options = PHPPreferences.getRevOptions();
+        options = getRevOptions();
 
         // If basePath is not assigned, popup Open Dialog to select a folder
         if (!basePath) {
-            FileSystem.showOpenDialog(false, true, "Select Folder", null, null, function (err, files) {
-                if (!err) {
-                    if (files.length > 0) {
-                        basePath = files[0];
-                        PHPReverseEngineer.analyze(basePath, options).then(result.resolve, result.reject);
-                    } else {
-                        result.reject(FileSystem.USER_CANCELED);
-                    }
-                } else {
-                    result.reject(err);
-                }
-            });
+            var files = app.dialogs.showOpenDialog("Select Folder", null, null, { properties: [ 'openDirectory' ] })
+            if (files && files.length > 0) {
+                basePath = files[0];
+                PHPReverseEngineer.analyze(basePath, options).then(result.resolve, result.reject);
+            }
         }
         return result.promise();
     }
@@ -166,7 +152,7 @@ define(function (require, exports, module) {
      * Popup PreferenceDialog with PHP Preference Schema
      */
     function _handleConfigure() {
-        CommandManager.execute(Commands.FILE_PREFERENCES, PHPPreferences.getId());
+        app.commands.execute('application:preferences', 'php');
     }
 
     // Register Commands
