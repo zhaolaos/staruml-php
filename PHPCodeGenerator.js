@@ -26,13 +26,16 @@
 define ( function ( require , exports , module ) {
     "use strict";
 
-    var Repository     = app.getModule ( "core/Repository" ) ,
-        ProjectManager = app.getModule ( "engine/ProjectManager" ) ,
-        Engine         = app.getModule ( "engine/Engine" ) ,
-        FileSystem     = app.getModule ( "filesystem/FileSystem" ) ,
-        FileUtils      = app.getModule ( "file/FileUtils" ) ,
-        Async          = app.getModule ( "utils/Async" ) ,
-        UML            = app.getModule ( "uml/UML" );
+    const path = require('path')
+    const fs = require('fs')
+
+    // var Repository     = app.getModule ( "core/Repository" ) ,
+    //     ProjectManager = app.getModule ( "engine/ProjectManager" ) ,
+    //     Engine         = app.getModule ( "engine/Engine" ) ,
+    //     FileSystem     = app.getModule ( "filesystem/FileSystem" ) ,
+    //     FileUtils      = app.getModule ( "file/FileUtils" ) ,
+    //     Async          = app.getModule ( "utils/Async" ) ,
+    //     UML            = app.getModule ( "uml/UML" );
 
     var CodeGenUtils = require ( "CodeGenUtils" );
 
@@ -80,28 +83,21 @@ define ( function ( require , exports , module ) {
      * @param {Object} options
      * @return {$.Promise}
      */
-    PHPCodeGenerator.prototype.generate = function ( elem , path , options ) {
+    PHPCodeGenerator.prototype.generate = function ( elem , basepath , options ) {
         var result   = new $.Deferred () ,
             self     = this ,
-            fullPath = path + "/" + elem.name ,
-            directory;
+            fullPath ,
+            //directory;
 
         // Package
         if ( elem instanceof type.UMLPackage ) {
-            directory = FileSystem.getDirectoryForPath ( fullPath );
-            directory.create ( function ( err , stat ) {
-                if ( !err ) {
-                    Async.doSequentially (
-                        elem.ownedElements ,
-                        function ( child ) {
-                            return self.generate ( child , fullPath , options );
-                        } ,
-                        false
-                    ).then ( result.resolve , result.reject );
-                } else {
-                    result.reject ( err );
-                }
-            } );
+            fullPath = path.join(basepath, elem.name)
+            //fs.mkdirSync(fullPath)
+            if (Array.isArray(elem.ownedElements)) {
+                elem.ownedElements.forEach(child => {
+                    return self.generate ( child , fullPath , options );
+                })
+            }
         } else if ( this.isClass ( elem , type ) ) {
             this.generateClass ( elem , path , options , result );
         } else {
@@ -130,9 +126,20 @@ define ( function ( require , exports , module ) {
      * @param result
      */
     PHPCodeGenerator.prototype.generateClass = function ( elem , path , options , result ) {
+
         var codeWriter ,
             file ,
             classExtension = "";
+
+        var getFilePath = (classExtenstions) => {
+        var absPath = basePath + '/' + elem.name
+        if (classExtenstions !== "") {
+            absPath += classExtenstions + ".php"
+        } else {
+            absPath += ".php"
+        }
+        return absPath
+        }
 
         codeWriter = new CodeGenUtils.CodeWriter ( this.getIndentString ( options ) );
         codeWriter.writeLine ( "<?php\n" );
@@ -145,8 +152,8 @@ define ( function ( require , exports , module ) {
         } else if ( elem instanceof type.UMLInterface ) {
             classExtension = options.interfaceExtension;
         }
-        file = FileSystem.getFileForPath ( path + "/" + elem.name + classExtension + ".php" );
-        FileUtils.writeText ( file , codeWriter.getData () , true ).then ( result.resolve , result.reject );
+        file = getFilePath (classExtension);
+        fs.writeFileSync ( file , codeWriter.getData () );
     };
 
     /**
@@ -182,13 +189,13 @@ define ( function ( require , exports , module ) {
      */
     PHPCodeGenerator.prototype.getVisibility = function ( elem ) {
         switch ( elem.visibility ) {
-            case UML.VK_PACKAGE:
+            case type.UMLModelElement.VK_PACKAGE:
                 return "";
-            case UML.VK_PUBLIC:
+            case type.UMLModelElement.VK_PUBLIC:
                 return "public";
-            case UML.VK_PROTECTED:
+            case type.UMLModelElement.VK_PROTECTED:
                 return "protected";
-            case UML.VK_PRIVATE:
+            case type.UMLModelElement.VK_PRIVATE:
                 return "private";
         }
         return null;
@@ -239,7 +246,7 @@ define ( function ( require , exports , module ) {
      * @return {Array.<type.Model>}
      */
     PHPCodeGenerator.prototype.getSuperClasses = function ( elem ) {
-        var generalizations = Repository.getRelationshipsOf ( elem , function ( rel ) {
+        var generalizations = app.repository.getRelationshipsOf ( elem , function ( rel ) {
             return (rel instanceof type.UMLGeneralization && rel.source === elem);
         } );
         return _.map ( generalizations , function ( gen ) {
@@ -253,7 +260,7 @@ define ( function ( require , exports , module ) {
      * @return {Array.<type.Model>}
      */
     PHPCodeGenerator.prototype.getSuperInterfaces = function ( elem ) {
-        var realizations = Repository.getRelationshipsOf ( elem , function ( rel ) {
+        var realizations = app.repository.getRelationshipsOf ( elem , function ( rel ) {
             return (rel instanceof type.UMLInterfaceRealization && rel.source === elem);
         } );
         return _.map ( realizations , function ( gen ) {
@@ -496,7 +503,7 @@ define ( function ( require , exports , module ) {
                 if ( visibility ) {
                     terms.push ( visibility );
                 }
-                terms.push ( "function __construct()" );
+                terms.push ( "public function __construct()" );
                 codeWriter.writeLine ( terms.join ( " " ) );
                 codeWriter.writeLine ( "{" );
                 codeWriter.writeLine ( "}" );
@@ -678,8 +685,8 @@ define ( function ( require , exports , module ) {
 
         // Doc
         var doc = elem.documentation.trim ();
-        if ( ProjectManager.getProject ().author && ProjectManager.getProject ().author.length > 0 ) {
-            doc += "\n@author " + ProjectManager.getProject ().author;
+        if ( app.projectmanager.getProject ().author && app.projectmanager.getProject ().author.length > 0 ) {
+            doc += "\n@author " + app.projectmanager.getProject ().author;
         }
         this.writeDoc ( codeWriter , doc , options );
 
@@ -724,7 +731,7 @@ define ( function ( require , exports , module ) {
             codeWriter.writeLine ();
         }
         // (from associations)
-        var associations = Repository.getRelationshipsOf ( elem , function ( rel ) {
+        var associations = app.repository.getRelationshipsOf ( elem , function ( rel ) {
             return (rel instanceof type.UMLAssociation);
         } );
         for ( i = 0, len = associations.length; i < len; i++ ) {
@@ -806,7 +813,7 @@ define ( function ( require , exports , module ) {
             codeWriter.writeLine ();
         }
         // (from associations)
-        var associations = Repository.getRelationshipsOf ( elem , function ( rel ) {
+        var associations = app.repository.getRelationshipsOf ( elem , function ( rel ) {
             return (rel instanceof type.UMLAssociation);
         } );
         for ( i = 0, len = associations.length; i < len; i++ ) {
@@ -886,8 +893,8 @@ define ( function ( require , exports , module ) {
 
         // Doc
         var doc = elem.documentation.trim ();
-        if ( Repository.getProject ().author && Repository.getProject ().author.length > 0 ) {
-            doc += "\n@author " + Repository.getProject ().author;
+        if ( app.repository.getProject ().author && app.repository.getProject ().author.length > 0 ) {
+            doc += "\n@author " + app.repository.getProject ().author;
         }
         this.writeDoc ( codeWriter , doc , options );
 
