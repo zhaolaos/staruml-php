@@ -78,7 +78,7 @@ class PHPCodeGenerator {
         // Package
         if ( elem instanceof type.UMLPackage ) {
             fullPath = path.join(basepath, elem.name)
-            //fs.mkdirSync(fullPath)
+            fs.mkdirSync(fullPath)
             if (Array.isArray(elem.ownedElements)) {
                 elem.ownedElements.forEach(child => {
                     return this.generate ( child , fullPath , options )
@@ -86,9 +86,8 @@ class PHPCodeGenerator {
             }
         } else if ( this.isClass ( elem , type ) ) {
             //class AnnotationType interface Enumeration
-            this.generateClass ( elem , options )
+            this.generateClass ( elem, basePath, options )
         }
-        return result.promise ()
     }
 
     /**
@@ -108,14 +107,14 @@ class PHPCodeGenerator {
      * @param elem
      * @param options
      */
-    generateClass ( elem , options ) {
+    generateClass ( elem, basepath , options ) {
 
         var codeWriter ,
             file ,
             classExtension = ""
 
         var getFilePath = (classExtenstions) => {
-        var absPath = basePath + '/' + elem.name
+        var absPath = basepath + '/' + elem.name
         if (classExtenstions !== "") {
             absPath += classExtenstions + ".php"
         } else {
