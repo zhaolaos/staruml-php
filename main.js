@@ -59,9 +59,9 @@ function _handleGenerate(base, path, options) {
 
     // If base is not assigned, popup ElementPicker
     if (!base) {
-        app.elementPickerDialog.showDialog("Select a base model to generate codes", null, type.UMLPackage).then(function ({buttonId, retrunValue}) {
+        app.elementPickerDialog.showDialog("Select a base model to generate codes", null, type.UMLPackage).then(function ({buttonId, returnValue}) {
                 if (buttonId === 'ok') {
-                    base = retrunValue
+                    base = returnValue
                     // If path is not assigned, popup Open Dialog to select a folder
                     if (!path) {
                         var files= app.dialogs.showOpenDialog("Select a folder where generated codes to be located", null, null, { properties: [ 'openDirectory' ] })

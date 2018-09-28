@@ -42,6 +42,8 @@ class CodeWriter {
         /** @member {Array.<string>} indentations */
         this.indentations = []
 
+        /** @member {Array} section */
+        this.sections = [];
     }
 
     /**
@@ -70,6 +72,48 @@ class CodeWriter {
         }
     }
 
+    /**
+     * Add named section to ba able to write lines in it
+     * @param {string} line
+     * @param {boolean} uniqueItems
+     */
+    addSection (name, uniqueItems) {
+        uniqueItems = uniqueItems || false;
+
+        if (!this.sections.includes({name: name})) {
+            this.sections.push({
+                name: name,
+                line: this.lines.length,
+                indentations: this.indentations,
+                insertEmptyLine: true,
+                uniqueItems: uniqueItems,
+                items: []
+            })
+        }
+    }
+
+    /**
+     * Write a line in section
+     * @param {string} line
+     * @param {string} name
+     */
+    writeLineInSection (line, name) {
+        var section = this.sections.find({name: name})
+        if (section) {
+            if (line && (!section.uniqueItems || !section.items.includes(line))) {
+                this.lines.splice(section.line, 0, section.indentations.join("") + line)
+                section.items.push(line)
+            } else {
+                this.lines.splice(section.line, 0, "")
+            }
+            section.line++
+            if (section.insertEmptyLine) {
+                this.lines.splice(section.line, 0, "")
+                section.insertEmptyLine = false
+            }
+        }
+    }
+    
     /**
      * Return as all string data
      * @return {string}

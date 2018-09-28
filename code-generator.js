@@ -25,9 +25,6 @@ const path = require('path')
 const fs = require('fs')
 const codegen = require( "./codegen-utils" )
 
-//constant for separate namespace on code
-var SEPARATE_NAMESPACE = '\\'
-
 /**
  * PHP Code Generator
  */
@@ -72,12 +69,13 @@ class PHPCodeGenerator {
      * @param {Object} options
      * @return {$.Promise}
      */
-    generate ( elem , basepath , options ) {
+    generate ( elem , basePath , options ) {
         var fullPath
 
         // Package
         if ( elem instanceof type.UMLPackage ) {
-            fullPath = path.join(basepath, elem.name)
+            fullPath = path.join(basePath, elem.name)
+            console.log(fullPath)
             fs.mkdirSync(fullPath)
             if (Array.isArray(elem.ownedElements)) {
                 elem.ownedElements.forEach(child => {
@@ -107,14 +105,14 @@ class PHPCodeGenerator {
      * @param elem
      * @param options
      */
-    generateClass ( elem, basepath , options ) {
+    generateClass ( elem, basePath , options ) {
 
         var codeWriter ,
             file ,
             classExtension = ""
 
         var getFilePath = (classExtenstions) => {
-        var absPath = basepath + '/' + elem.name
+        var absPath = basePath + '/' + elem.name
         if (classExtenstions !== "") {
             absPath += classExtenstions + ".php"
         } else {
@@ -219,7 +217,7 @@ class PHPCodeGenerator {
             modifiers.push ( visibility )
         }
         var status = this.getModifiersClass ( elem )
-        return _.union ( modifiers , status )
+        return modifiers + status
     }
 
     /**
@@ -231,7 +229,7 @@ class PHPCodeGenerator {
         var generalizations = app.repository.getRelationshipsOf ( elem , function ( rel ) {
             return (rel instanceof type.UMLGeneralization && rel.source === elem)
         } )
-        return _.map ( generalizations , function ( gen ) {
+        return generalizations.map ( function ( gen ) {
             return gen.target
         } )
     }
@@ -245,7 +243,7 @@ class PHPCodeGenerator {
         var realizations = app.repository.getRelationshipsOf ( elem , function ( rel ) {
             return (rel instanceof type.UMLInterfaceRealization && rel.source === elem)
         } )
-        return _.map ( realizations , function ( gen ) {
+        return realizations.map ( function ( gen ) {
             return gen.target
         } )
     }
@@ -263,7 +261,7 @@ class PHPCodeGenerator {
             _parent = this.getNamespaces ( elem._parent )
         }
 
-        return _.union ( _parent , _namespace )
+        return _parent + _namespace
     }
 
     /**
@@ -272,6 +270,9 @@ class PHPCodeGenerator {
      * @return {string}
      */
     getDocumentType ( elem ) {
+        //constant for separate namespace on code
+        var SEPARATE_NAMESPACE = '\\'
+        
         var _type      = "void"
         var _namespace = ""
 
@@ -283,7 +284,7 @@ class PHPCodeGenerator {
         if ( elem instanceof type.UMLAssociationEnd ) {
             if ( elem.reference instanceof type.UMLModelElement && elem.reference.name.length > 0 ) {
                 _type      = elem.reference.name
-                _namespace = _.map ( this.getNamespaces ( elem.reference ) , function ( e ) { return e } ).join ( SEPARATE_NAMESPACE )
+                _namespace = this.getNamespaces ( elem.reference ).map (  function ( e ) { return e } ).join ( SEPARATE_NAMESPACE )
 
                 if ( _namespace !== "" ) {
                     _namespace = SEPARATE_NAMESPACE + _namespace
@@ -293,19 +294,19 @@ class PHPCodeGenerator {
         } else {
             if ( elem.type instanceof type.UMLModelElement && elem.type.name.length > 0 ) {
                 _type      = elem.type.name
-                _namespace = _.map ( this.getNamespaces ( elem.type ) , function ( e ) { return e } ).join ( SEPARATE_NAMESPACE )
+                _namespace = this.getNamespaces ( elem.type ).map ( function ( e ) { return e } ).join ( SEPARATE_NAMESPACE )
 
                 if ( _namespace !== "" ) {
                     _namespace = SEPARATE_NAMESPACE + _namespace
                 }
                 _type = _namespace + SEPARATE_NAMESPACE + _type
-            } else if ( _.isString ( elem.type ) && elem.type.length > 0 ) {
+            } else if (  elem.type.isString () && elem.type.length > 0 ) {
                 _type = elem.type
             }
         }
         // multiplicity
         if ( elem.multiplicity && this.isAllowedTypeHint ( _type ) ) {
-            if ( _.contains ( [ "0..*" , "1..*" , "*" ] , elem.multiplicity.trim () ) ) {
+            if ( [ "0..*" , "1..*" , "*" ].contains ( elem.multiplicity.trim () ) ) {
                 _type += "[]"
             }
         }
@@ -353,16 +354,16 @@ class PHPCodeGenerator {
                 _isObject      = true
                 _type          = elem.type.name
                 _namespacePath = this.getNamespaces ( elem.type )
-            } else if ( _.isString ( elem.type ) && elem.type.length > 0 ) {
+            } else if ( typeof elem.type === 'string' && elem.type.length > 0 ) {
                 _type = elem.type
             }
         }
 
         if ( _isObject ) {
             if ( _globalNamespace.isEqual ( _globalNamespace.intersect ( _namespacePath ) ) ) {
-                _namespace = _.map ( _namespacePath.diff ( _globalNamespace ) , function ( e ) { return e } ).join ( SEPARATE_NAMESPACE )
+                _namespace = _namespacePath.diff ( _globalNamespace ).map ( function ( e ) { return e } ).join ( SEPARATE_NAMESPACE )
             } else {
-                _namespace = _.map ( _namespacePath , function ( e ) { return e } ).join ( SEPARATE_NAMESPACE )
+                _namespace = _namespacePath.map ( function ( e ) { return e } ).join ( SEPARATE_NAMESPACE )
                 _namespace = SEPARATE_NAMESPACE + _namespace
             }
 
@@ -414,7 +415,7 @@ class PHPCodeGenerator {
      */
     writeDoc ( codeWriter , text , options ) {
         var i , len , lines , terms
-        if ( options.phpDoc && _.isString ( text ) ) {
+        if ( options.phpDoc && typeof text === 'string' ) {
             lines = text.trim ().split ( "\n" )
             codeWriter.writeLine ( "/**" )
             for ( i = 0, len = lines.length; i < len; i++ ) {
@@ -435,7 +436,7 @@ class PHPCodeGenerator {
      */
     writeSpec ( codeWriter , text ) {
         var i , len , lines
-        if ( _.isString ( text ) ) {
+        if ( typeof text === 'string' ) {
             lines = text.trim ().split ( "\n" )
             for ( i = 0, len = lines.length; i < len; i++ ) {
                 codeWriter.writeLine ( lines[ i ] )
@@ -485,7 +486,7 @@ class PHPCodeGenerator {
                 if ( visibility ) {
                     terms.push ( visibility )
                 }
-                terms.push ( "public function __construct()" )
+                terms.push ( "function __construct()" )
                 codeWriter.writeLine ( terms.join ( " " ) )
                 codeWriter.writeLine ( "{" )
                 codeWriter.writeLine ( "}" )
@@ -538,8 +539,8 @@ class PHPCodeGenerator {
         onlyAbstract = onlyAbstract || false
         for ( var i = 0 , len = elem.operations.length; i < len; i++ ) {
             var method = elem.operations[ i ]
-            if ( method !== undefined && !_.contains ( methods , method.name ) && !onlyAbstract || method.isAbstract === true ) {
-                var clone = _.clone ( method )
+            if ( method !== undefined && !method.contains ( method.name ) && !onlyAbstract || method.isAbstract === true ) {
+                var clone = method.clone ()
                 if ( onlyAbstract ) {
                     clone.isAbstract = false
                 }
@@ -570,7 +571,7 @@ class PHPCodeGenerator {
             var _that       = this
             // doc
             var doc         = elem.documentation.trim ()
-            _.each ( params , function ( param ) {
+            params.each ( function ( param ) {
                 doc += "\n@param " + _that.getDocumentType ( param ) + " $" + param.name + " " + param.documentation
             } )
             if ( returnParam ) {
@@ -613,7 +614,7 @@ class PHPCodeGenerator {
             terms.push ( functionName )
 
             // body
-            if ( skipBody === true || _.contains ( _modifiers , "abstract" ) ) {
+            if ( skipBody === true ||  _modifiers.contains ( "abstract" ) ) {
                 codeWriter.writeLine ( terms.join ( " " ) + "" )
             } else {
                 codeWriter.writeLine ( terms.join ( " " ) )
@@ -667,8 +668,8 @@ class PHPCodeGenerator {
 
         // Doc
         var doc = elem.documentation.trim ()
-        if ( app.projectmanager.getProject ().author && app.projectmanager.getProject ().author.length > 0 ) {
-            doc += "\n@author " + app.projectmanager.getProject ().author
+        if ( app.project.getProject ().author && app.project.getProject ().author.length > 0 ) {
+            doc += "\n@author " + app.project.getProject ().author
         }
         this.writeDoc ( codeWriter , doc , options )
 
@@ -693,7 +694,7 @@ class PHPCodeGenerator {
         // Implements
         var _implements = this.getSuperInterfaces ( elem )
         if ( _implements.length > 0 ) {
-            terms.push ( "implements " + _.map ( _implements , function ( e ) {
+            terms.push ( "implements " + _implements.map ( function ( e ) {
                     return e.name
                 } ).join ( ", " ) )
         }
@@ -780,7 +781,7 @@ class PHPCodeGenerator {
         // Extends
         var _extends = this.getSuperClasses ( elem )
         if ( _extends.length > 0 ) {
-            terms.push ( "extends " + _.map ( _extends , function ( e ) {
+            terms.push ( "extends " + _extends.map ( function ( e ) {
                     return e.name
                 } ).join ( ", " ) )
         }
