@@ -830,8 +830,8 @@ class PHPCodeGenerator {
 
         // Methods
         for ( i = 0, len = elem.operations.length; i < len; i++ ) {
-            // 添加分号，修复接口中语法错误
-            elem.operations[i] += ';'
+            // 添加分号，修复接口中语法错误,结果导致错误，看来是
+            //elem.operations[i] += ';'
             this.writeMethod ( codeWriter , elem.operations[ i ] , options , true , false )
             codeWriter.writeLine ()
         }
