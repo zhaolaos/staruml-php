@@ -1,6 +1,6 @@
 {
   "id": "php",
-  "name": "PHP",
+  "name": "Php",
   "schema": {
     "php.gen": {
         "text": "PHP Code Generation",
@@ -9,43 +9,43 @@
     "php.gen.phpDoc": {
         "text": "PHPDoc",
         "description": "Generate PHPDoc comments.",
-        "type": "Check",
+        "type": "check",
         "default": true
     },
     "php.gen.phpStrictMode": {
         "text": "Strict Mode",
         "description": "Generate PHP Strict Mode.",
-        "type": "Check",
+        "type": "check",
         "default": true
     },
     "php.gen.phpReturnType": {
         "text": "Return Type",
         "description": "Generate PHP Return Type (e.q. PHP7).",
-        "type": "Check",
+        "type": "check",
         "default": true
     },
     "php.gen.useTab": {
         "text": "Use Tab",
         "description": "Use Tab for indentation instead of spaces.",
-        "type": "Check",
+        "type": "check",
         "default": false
     },
     "php.gen.indentSpaces": {
         "text": "Indent Spaces",
         "description": "Number of spaces for indentation.",
-        "type": "Number",
+        "type": "number",
         "default": 4
     },
     "php.gen.classExtension": {
         "text": "Append to class filename",
-        "description": "Insert value into class filename extensions (e.g. MyClass.class.php)",
-        "type": "String",
+        "description": "为类文件添加扩展名，格式'.class' (如： .class --> MyClass.class.php)",
+        "type": "string",
         "default": ""
     },
     "php.gen.interfaceExtension": {
         "text": "Append to interface filename",
         "description": "Insert value into interface filename extensions (e.g. MyInterface.interface.php)",
-        "type": "String",
+        "type": "string",
         "default": ""
     }
 }

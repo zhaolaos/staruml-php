@@ -76,7 +76,9 @@ class PHPCodeGenerator {
         if ( elem instanceof type.UMLPackage ) {
             fullPath = path.join(basePath, elem.name)
             console.log(fullPath)
-            fs.mkdirSync(fullPath)
+            //判断文件目录是否已经存在
+            //同步创建目录
+            fs.mkdirSync(fullPath) //当创建的文件夹已经存在时会抛出异常
             if (Array.isArray(elem.ownedElements)) {
                 elem.ownedElements.forEach(child => {
                     return this.generate ( child , fullPath , options )
@@ -99,7 +101,15 @@ class PHPCodeGenerator {
             || elem instanceof type.UMLInterface
             || elem instanceof type.UMLEnumeration
     }
-
+    getFilePath (elem, basePath, classExtensions) {
+        var absPath = basePath + '/' + elem.name
+        if (classExtensions !== "") {
+            absPath += classExtensions + ".php"
+        } else {
+            absPath += ".php"
+        }
+        return absPath
+    }
     /**
      * generate file class
      * @param elem
@@ -110,29 +120,20 @@ class PHPCodeGenerator {
         var codeWriter ,
             file ,
             classExtension = ""
-
-        var getFilePath = (classExtenstions) => {
-        var absPath = basePath + '/' + elem.name
-        if (classExtenstions !== "") {
-            absPath += classExtenstions + ".php"
-        } else {
-            absPath += ".php"
-        }
-        return absPath
-        }
-
+        
         codeWriter = new codegen.CodeWriter ( this.getIndentString ( options ) )
         codeWriter.writeLine ( "<?php\n" )
         this.writePackageDeclaration ( codeWriter , elem )
         codeWriter.writeLine ()
         codeWriter.addSection ( "uses" , true )
         this.writeClasses ( codeWriter , elem , options )
-        if ( elem instanceof type.UMLClass && !elem.stereotype === "annotationType" ) {
+        if ( elem instanceof type.UMLClass && elem.stereotype !== "annotationType" ) {
             classExtension = options.classExtension
         } else if ( elem instanceof type.UMLInterface ) {
             classExtension = options.interfaceExtension
+            
         }
-        file = getFilePath (classExtension)
+        file = this.getFilePath (elem, basePath, classExtension)
         fs.writeFileSync ( file , codeWriter.getData () )
     }
 
