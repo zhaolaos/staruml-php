@@ -218,7 +218,7 @@ class PHPCodeGenerator {
             modifiers.push ( visibility )
         }
         var status = this.getModifiersClass ( elem )
-        return modifiers + status
+        return this.mergeArrayMerge(modifiers, status)
     }
 
     /**
@@ -301,13 +301,13 @@ class PHPCodeGenerator {
                     _namespace = SEPARATE_NAMESPACE + _namespace
                 }
                 _type = _namespace + SEPARATE_NAMESPACE + _type
-            } else if (  elem.type.isString () && elem.type.length > 0 ) {
+            } else if (  typeof(elem.type) === "string" && elem.type.length > 0 ) {
                 _type = elem.type
             }
         }
         // multiplicity
         if ( elem.multiplicity && this.isAllowedTypeHint ( _type ) ) {
-            if ( [ "0..*" , "1..*" , "*" ].contains ( elem.multiplicity.trim () ) ) {
+            if ( [ "0..*" , "1..*" , "*" ].includes( elem.multiplicity.trim () ) ) {
                 _type += "[]"
             }
         }
@@ -407,7 +407,23 @@ class PHPCodeGenerator {
     //     }
     //     return result
     // }
-
+    /**
+     * 
+     * @param {*} array1 
+     * @param {*} array2 
+     */
+    mergeArrayMerge (array1, array2) {
+        array1.map((v, index) => {
+            if (v !== '') {
+                let idx = array2.indexOf(v)
+                if (idx > -1) {
+                    array2.splice(idx, 1)
+                }
+            }
+        })
+        array1 = array1.concat(array2)
+        return array1
+    }
     /**
      * Write Doc
      * @param {StringWriter} codeWriter
@@ -525,7 +541,7 @@ class PHPCodeGenerator {
             if ( elem.defaultValue && elem.defaultValue.length > 0 ) {
                 terms.push ( "= " + elem.defaultValue )
             }
-            codeWriter.writeLine ( terms.join ( " " ) + "" )
+            codeWriter.writeLine ( terms.join ( " " ) + ";" )
         }
     }
 
@@ -540,8 +556,8 @@ class PHPCodeGenerator {
         onlyAbstract = onlyAbstract || false
         for ( var i = 0 , len = elem.operations.length; i < len; i++ ) {
             var method = elem.operations[ i ]
-            if ( method !== undefined && !method.contains ( method.name ) && !onlyAbstract || method.isAbstract === true ) {
-                var clone = method.clone ()
+            if ( method !== undefined && !methods.includes( method.name ) && !onlyAbstract || method.isAbstract === true ) {
+                var clone = method
                 if ( onlyAbstract ) {
                     clone.isAbstract = false
                 }
@@ -572,7 +588,7 @@ class PHPCodeGenerator {
             var _that       = this
             // doc
             var doc         = elem.documentation.trim ()
-            params.each ( function ( param ) {
+            params.forEach ( function ( param ) {
                 doc += "\n@param " + _that.getDocumentType ( param ) + " $" + param.name + " " + param.documentation
             } )
             if ( returnParam ) {
@@ -583,7 +599,7 @@ class PHPCodeGenerator {
             // modifiers
             var _modifiers = this.getModifiers ( elem )
             if ( _modifiers.length > 0 ) {
-                terms.push ( _modifiers.join ( " " ) )
+                terms.push ( _modifiers.join( " " ) )
             }
 
             terms.push ( "function" )
@@ -610,12 +626,12 @@ class PHPCodeGenerator {
 
             var functionName = elem.name + "(" + paramTerms.join ( ", " ) + ")"
             if ( options.phpReturnType ) {
-                functionNameName + ':' + this.getTypeHint ( returnParam )
+                functionName + ':' + this.getTypeHint ( returnParam )
             }
             terms.push ( functionName )
 
             // body
-            if ( skipBody === true ||  _modifiers.contains ( "abstract" ) ) {
+            if ( skipBody === true ||  _modifiers.includes( "abstract" ) ) {
                 codeWriter.writeLine ( terms.join ( " " ) + "" )
             } else {
                 codeWriter.writeLine ( terms.join ( " " ) )
@@ -788,6 +804,7 @@ class PHPCodeGenerator {
         }
         codeWriter.writeLine ( terms.join ( " " ) )
         codeWriter.writeLine ( "{" )
+        codeWriter.writeLine ( options.useTab )
         codeWriter.indent ()
 
         // Member Variables
@@ -813,6 +830,8 @@ class PHPCodeGenerator {
 
         // Methods
         for ( i = 0, len = elem.operations.length; i < len; i++ ) {
+            // 添加分号，修复接口中语法错误
+            elem.operations[i] += ';'
             this.writeMethod ( codeWriter , elem.operations[ i ] , options , true , false )
             codeWriter.writeLine ()
         }
