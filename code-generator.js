@@ -361,8 +361,8 @@ class PHPCodeGenerator {
         }
 
         if ( _isObject ) {
-            if ( _globalNamespace.isEqual ( _globalNamespace.intersect ( _namespacePath ) ) ) {
-                _namespace = _namespacePath.diff ( _globalNamespace ).map ( function ( e ) { return e } ).join ( SEPARATE_NAMESPACE )
+            if ( this.isEqual ( _globalNamespace, this.intersect ( _globalNamespace, _namespacePath ) ) ) {
+                _namespace = this.diff ( _namespacePath, _globalNamespace ).map ( function ( e ) { return e } ).join ( SEPARATE_NAMESPACE )
             } else {
                 _namespace = _namespacePath.map ( function ( e ) { return e } ).join ( SEPARATE_NAMESPACE )
                 _namespace = SEPARATE_NAMESPACE + _namespace
@@ -376,37 +376,37 @@ class PHPCodeGenerator {
         return _type
     }
 
-    // Array.prototype.intersect ( array ) {
-    //     var result = []
-    //     for ( var i = 0 , len = this.length; i < len; i++ ) {
-    //         if ( this[ i ] == array[ i ] ) {
-    //             result.push ( array[ i ] )
-    //         }
-    //     }
-    //     return result
-    // }
+    intersect ( array1, array2 ) {
+        var result = []
+        for ( var i = 0 , len = array1.length; i < len; i++ ) {
+            if ( array1[ i ] == array2[ i ] ) {
+                result.push ( array2[ i ] )
+            }
+        }
+        return result
+    }
 
-    // Array.prototype.isEqual ( array ) {
-    //     if ( this.length != array.length ) {
-    //         return false
-    //     }
-    //     for ( var i = 0 , len = this.length; i < len; i++ ) {
-    //         if ( this[ i ] != array[ i ] ) {
-    //             return false
-    //         }
-    //     }
-    //     return true
-    // }
+    isEqual ( array1, array2 ) {
+        if ( array1.length != array2.length ) {
+            return false
+        }
+        for ( var i = 0 , len = array1.length; i < len; i++ ) {
+            if ( array1[ i ] != array2[ i ] ) {
+                return false
+            }
+        }
+        return true
+    }
 
-    // Array.prototype.diff ( array ) {
-    //     var result = []
-    //     for ( var i = 0 , len = this.length; i < len; i++ ) {
-    //         if ( this[ i ] != array[ i ] ) {
-    //             result.push ( this[ i ] )
-    //         }
-    //     }
-    //     return result
-    // }
+    diff ( array1, array2 ) {
+        var result = []
+        for ( var i = 0 , len = array1.length; i < len; i++ ) {
+            if ( array1[ i ] != array2[ i ] ) {
+                result.push ( array1[ i ] )
+            }
+        }
+        return result
+    }
     /**
      * 
      * @param {*} array1 
