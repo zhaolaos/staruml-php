@@ -631,8 +631,9 @@ class PHPCodeGenerator {
             terms.push ( functionName )
 
             // body
+            // 判断 如果是接口或者抽象类，则直接写方法名
             if ( skipBody === true ||  _modifiers.includes( "abstract" ) ) {
-                codeWriter.writeLine ( terms.join ( " " ) + "" )
+                codeWriter.writeLine ( terms.join ( " " ) + ";" )
             } else {
                 codeWriter.writeLine ( terms.join ( " " ) )
                 codeWriter.writeLine ( "{" )
@@ -667,6 +668,7 @@ class PHPCodeGenerator {
 
                 codeWriter.outdent ()
                 codeWriter.writeLine ( "}" )
+              
             }
             return true
         }
