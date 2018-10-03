@@ -24,7 +24,8 @@
 const path = require('path')
 const fs = require('fs')
 const codegen = require( "./codegen-utils" )
-
+//constant for separate namespace on code
+const SEPARATE_NAMESPACE = '\\'
 /**
  * PHP Code Generator
  */
@@ -262,7 +263,7 @@ class PHPCodeGenerator {
             _parent = this.getNamespaces ( elem._parent )
         }
 
-        return _parent + _namespace
+        return new Set([..._parent, ..._namespace])
     }
 
     /**
@@ -271,8 +272,6 @@ class PHPCodeGenerator {
      * @return {string}
      */
     getDocumentType ( elem ) {
-        //constant for separate namespace on code
-        var SEPARATE_NAMESPACE = '\\'
         
         var _type      = "void"
         var _namespace = ""
@@ -375,7 +374,7 @@ class PHPCodeGenerator {
 
         return _type
     }
-
+    // 交集
     intersect ( array1, array2 ) {
         var result = []
         for ( var i = 0 , len = array1.length; i < len; i++ ) {
@@ -397,7 +396,7 @@ class PHPCodeGenerator {
         }
         return true
     }
-
+    // 差集
     diff ( array1, array2 ) {
         var result = []
         for ( var i = 0 , len = array1.length; i < len; i++ ) {
@@ -461,7 +460,7 @@ class PHPCodeGenerator {
         }
     }
 
-    //var namespacePath = null
+    // var namespacePath = null
 
     /**
      * Write Package Declaration
