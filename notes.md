@@ -5,6 +5,10 @@ staruml 3.0版本php扩展
 菜单也放到menus文件夹中
 main.js
 generator.js中都做了修改，原来的导入组件的方式全部取消了
+----------------
+10.3
+修改getnamespaces方法，返回数组的并集，使用了new Set([])
+类里面的实现数组的交并差的方法可以用这个方法替代了
 
 9.30
 bug修复，修改了原来注释掉的三个数组函数diff/srecset/isEqual
@@ -31,7 +35,6 @@ mergeArrayMerge (array1, array2) {
     array1 = array1.concat(array2)
     return array1
 }
-
 ---------------------
 
 本文来自 一个慢 的CSDN 博客 ，全文地址请点击：https://blog.csdn.net/one_girl/article/details/80593947?utm_source=copy 
@@ -66,6 +69,7 @@ mergeArrayMerge (array1, array2) {
 问题：这里把getFilePath函数嵌套在了generatorClass方法中，不符合面向对象的概念。!elem.stereotype === "annotationType"表达式错误导致变量classExtension没有获取到options中的值。
 修改思路：getFilePath函数移出，并且添加elem、basePath两个参数。表达式改为 elem.stereotype !== "annotationType"
 -------------------------------------------------------
+
 2018.9.28 22：30 
 第六次，修改generator，使用ES6取代的Lodash特性的函数
 Lodash常常需要依赖于npm包，但如果使用ES6，你可能不再需要依赖于npm包。
@@ -79,17 +83,13 @@ _.reduce([1, 2, 3], function(total, n) { return total + n; }, 0);
 // 6
 _.filter([1, 2, 3], function(n) { return n <= 2; });
 // [1, 2]
-
 // 可以换成这样
-
 [1, 2, 3].map(n => n * 3);
 [1, 2, 3].reduce((total, n) => total + n);
 [1, 2, 3].filter(n => n <= 2);
 支持的不仅仅这些，如果使用ES6的Polyfill，还可以使用find、some、every和reduceRight。
-
 著作权归作者所有。
 商业转载请联系作者获得授权,非商业转载请注明出处。
 原文: https://www.w3cplus.com/javascript/lodash-features-replace-es6.html © w3cplus.com
-
 
 第五次修改，原来的修改后，扩展是添加上了，但是点击菜单中的命令没有反应，此次修改后可以弹出菜单了，但是还不能生成文件夹和文件。
